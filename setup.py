@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='gittip-twisted',
-    version='0.1.1',
+    version='0.1.2',
     description='Library for accessing Gittip APIs',
     author='Alexander Zykov',
     author_email='tigernwh@gmail.com',

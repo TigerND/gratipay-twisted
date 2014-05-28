@@ -88,6 +88,8 @@ def endpoint(endpoint, username='about', apikey=None, data=None):
     global url, user_agent
     def encode_body(data):
         if (data):
+            if (isinstance(data, six.string_types)):
+                data = json_loads(data)
             return ('POST', FileBodyProducer(six.StringIO(json_dumps(data))))
         else:
             return ('GET', None)
@@ -132,8 +134,6 @@ def public(username):
 
 
 def tips(username, apikey, data):
-    if isinstance(data, six.string_types):
-        data = json_loads(data)
     return endpoint('tips.json', username, apikey, data)
 
 
