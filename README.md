@@ -1,5 +1,5 @@
 ## TxGittip
-Library for accessing [Gittip](https://www.gittip.com/) APIs
+Library for accessing [Gittip](https://www.gittip.com/) APIs for the [Twisted](https://twistedmatrix.com/trac/) networking engine (written in Python)
 
 ## Simple example
 ```py
