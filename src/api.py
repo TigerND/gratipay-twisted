@@ -4,6 +4,7 @@
 
 
 import os
+import six
 import base64
 import urllib
 import traceback
@@ -37,6 +38,8 @@ from twisted.internet.task import \
     deferLater
 from twisted.internet.threads import \
     deferToThread
+from twisted.internet.protocol import \
+    Protocol
 
 from twisted.web.client import \
     getPage, Agent, HTTPConnectionPool, FileBodyProducer
@@ -54,6 +57,11 @@ class RequestError(Exception):
     pass
 
 
+def encode_apikey(apikey):
+    apikey = apikey.encode('utf-8') if (isinstance(apikey, unicode)) else apikey
+    return base64.urlsafe_b64encode(apikey + ':').encode('utf-8')
+
+
 def make_endpoint_address(endpoint, username):
     global url
     return u'%(url)s/%(username)s/%(endpoint)s' % dict(url=url,
@@ -62,19 +70,57 @@ def make_endpoint_address(endpoint, username):
                                                      )
     return address
 
+
+class WebBodyCollector(Protocol):
+    def __init__(self, finished):
+        self.finished = finished
+        self.body = ''
+
+    def dataReceived(self, bytes):
+        self.body += bytes
+
+    def connectionLost(self, reason):
+        self.finished.callback(None)
+
+
 @inlineCallbacks
-def endpoint(endpoint, username='about'):
+def endpoint(endpoint, username='about', apikey=None, data=None):
+    global url, user_agent
+    def encode_body(data):
+        if (data):
+            return ('POST', FileBodyProducer(six.StringIO(json_dumps(data))))
+        else:
+            return ('GET', None)
     address = make_endpoint_address(endpoint, username)
-    result = yield getPage(address.encode('utf-8'))
-    returnValue(json_loads(result))
+    headers = Headers({
+        'Accept': ['application/json,*/*;q=0.8'],
+        'Accept-Encoding': ['gzip,deflate,sdch'],
+        'Connection': ['keep-alive'],
+        'User-Agent': [user_agent],
+        'Content-Type': ['application/json'],
+    })
+    if (apikey):
+        headers.addRawHeader('Authorization', 'Basic ' + encode_apikey(str(apikey)))
+    method, body = encode_body(data)
+    agent = Agent(reactor)
+    response = yield agent.request(method, address.encode('utf-8'), headers, body)
+    if (response.code == 200):
+        finished = Deferred()
+        collector = WebBodyCollector(finished)
+        response.deliverBody(collector)
+        x = yield finished
+        returnValue(json_loads(collector.body))
+    else:
+        raise RequestError(response.phrase)
+
 
 
 def paydays():
-    return endpoint('paydays.json', 'about')
+    return endpoint('paydays.json')
 
 
 def stats():
-    return endpoint('stats.json', 'about')
+    return endpoint('stats.json')
 
 
 def charts(username='about'):
@@ -85,28 +131,10 @@ def public(username):
     return endpoint('public.json', username)
 
 
-@inlineCallbacks
 def tips(username, apikey, data):
-    global url, user_agent
-    address, make_endpoint_address(endpoint, username)
-    agent = Agent(reactor)
-    headers = Headers({
-        'Accept': ['application/json,*/*;q=0.8'],
-        'Accept-Encoding': ['gzip,deflate,sdch'],
-        'Connection': ['keep-alive'],
-        'User-Agent': [user_agent],
-        'Content-Type': ['application/json'],
-    })
-    body = FileBodyProducer(StringIO(json_dumps(data)))
-    response = yield agent.request('POST', address.encode('utf-8'), headers, body)
-    if (response.code == 200):
-        finished = Deferred()
-        collector = WebBodyCollector(finished)
-        response.deliverBody(collector)
-        x = yield finished
-        returnValue(json_loads(collector.body))
-    else:
-        raise RequestError(response.phrase)
+    if isinstance(data, six.string_types):
+        data = json_loads(data)
+    return endpoint('tips.json', username, apikey, data)
 
 
 __all__ = [
