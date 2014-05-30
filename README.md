@@ -7,7 +7,10 @@ import txgittip
 
 @inlineCallbacks
 def getUserInfo(username='Gittip')
-    requests = [txgittip.api.public(username), txgittip.api.stats(username)]
+    requests = [
+        txgittip.api.public(username), 
+        txgittip.api.stats(username),
+    ]
     results = yield gatherResuts(requests)
     returnValue(results)
 ```
