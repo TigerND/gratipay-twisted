@@ -23,8 +23,8 @@ except:
    json_dumps = json.dumps
 
 
-from txgittip import \
-    version as txgittip_version
+from txgratipay import \
+    version as txgratipay_version
 
 from twisted import \
     version as twisted_version
@@ -49,8 +49,8 @@ from twisted.web.http_headers import \
 
 os_sysname, os_nodename, os_release, os_version, os_machine = os.uname()
 
-user_agent = 'TxGittip {} ({}; {}) {}'.format(txgittip_version, os_sysname, os_machine, twisted_version)
-url = 'https://www.gittip.com/'
+user_agent = 'TxGratipay {} ({}; {}) {}'.format(txgratipay_version, os_sysname, os_machine, twisted_version)
+url = 'https://www.gratipay.com/'
 
 
 class RequestError(Exception):

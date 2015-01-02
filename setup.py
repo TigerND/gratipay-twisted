@@ -3,17 +3,17 @@
 from setuptools import setup
 
 setup(
-    name='gittip-twisted',
-    version='0.1.2',
-    description='Library for accessing Gittip APIs',
+    name='gratipay-twisted',
+    version='0.1.3',
+    description='Library for accessing Gratipay APIs',
     author='Alexander Zykov',
     author_email='tigernwh@gmail.com',
-    url='https://github.com/TigerND/gittip-twisted',
+    url='https://github.com/TigerND/gratipay-twisted',
     package_dir={
-        'txgittip': 'src'
+        'txgratipay': 'src'
     },
     packages=[
-        'txgittip',
+        'txgratipay',
     ],
     data_files=[
     ],
